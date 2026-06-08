@@ -1,0 +1,26 @@
+{% comment %}
+AppButton — shared button. Renders an <a> when `href` is given, else a <button>.
+Params:
+  variant  primary (default) | secondary | outline | ghost | destructive | success
+  size     default | sm | lg
+  text     button label
+  icon     optional Lucide icon name (rendered before text)
+  href     if set -> anchor; otherwise a button
+  type     button | submit (default submit) — only for <button>
+  onclick, id, title, name, value, extra (extra classes), disabled
+Example:
+  {% include "components/button.html" with variant="primary" text="Add" icon="plus" href="/x/" %}
+{% endcomment %}
+{% spaceless %}
+{% if href %}
+<a href="{{ href }}"{% if id %} id="{{ id }}"{% endif %}{% if title %} title="{{ title }}"{% endif %}
+   class="btn-{{ variant|default:'primary' }}{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}{% if extra %} {{ extra }}{% endif %}">
+    {% if icon %}{% include "components/icon.html" with name=icon size=16 %}{% endif %}{% if text %}<span>{{ text }}</span>{% endif %}
+</a>
+{% else %}
+<button type="{{ type|default:'submit' }}"{% if id %} id="{{ id }}"{% endif %}{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %}{% if onclick %} onclick="{{ onclick }}"{% endif %}{% if title %} title="{{ title }}"{% endif %}{% if disabled %} disabled{% endif %}
+   class="btn-{{ variant|default:'primary' }}{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}{% if extra %} {{ extra }}{% endif %}">
+    {% if icon %}{% include "components/icon.html" with name=icon size=16 %}{% endif %}{% if text %}<span>{{ text }}</span>{% endif %}
+</button>
+{% endif %}
+{% endspaceless %}

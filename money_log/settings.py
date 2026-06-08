@@ -187,6 +187,12 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Project-level static assets (compiled Tailwind CSS lives in static/css/app.css).
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Destination for `python manage.py collectstatic` in production.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

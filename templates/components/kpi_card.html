@@ -1,0 +1,32 @@
+{% comment %}
+AppKpiCard — dashboard metric widget (reusable).
+Params:
+  label     metric label
+  value     formatted value (string)
+  icon      Lucide icon name
+  tone      primary (default) | success | destructive | warning | muted
+  trend     optional trend text (e.g. "+12.5%")
+  trend_up  bool — colors the trend green (true) or red (false)
+{% endcomment %}
+<div class="card">
+    <div class="card-content pt-6">
+        <div class="flex items-start justify-between">
+            <span class="flex h-11 w-11 items-center justify-center rounded-lg
+                {% if tone == 'success' %}bg-success/10 text-success
+                {% elif tone == 'destructive' %}bg-destructive/10 text-destructive
+                {% elif tone == 'warning' %}bg-warning/10 text-warning
+                {% elif tone == 'muted' %}bg-muted text-muted-foreground
+                {% else %}bg-primary/10 text-primary{% endif %}">
+                {% include "components/icon.html" with name=icon size=22 %}
+            </span>
+            {% if trend %}
+            <span class="inline-flex items-center gap-1 text-sm font-medium {% if trend_up %}text-success{% else %}text-destructive{% endif %}">
+                {% if trend_up %}{% include "components/icon.html" with name="trending-up" size=16 %}{% else %}{% include "components/icon.html" with name="trending-down" size=16 %}{% endif %}
+                {{ trend }}
+            </span>
+            {% endif %}
+        </div>
+        <p class="mt-4 text-sm text-muted-foreground">{{ label }}</p>
+        <p class="mt-1 text-2xl font-bold tracking-tight text-foreground">{{ prefix }}{{ value }}</p>
+    </div>
+</div>

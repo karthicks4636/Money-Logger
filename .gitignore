@@ -27,6 +27,11 @@ db.sqlite3-journal
 DesignCode/
 
 
+# Tailwind standalone CLI binary (downloaded locally; not committed)
+tools/tailwindcss
+tools/tailwindcss.exe
+node_modules/
+
 # IDE
 .vscode/
 .idea/

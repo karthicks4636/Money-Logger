@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   Money Logger — Design tokens (shadcn/ui design language)
+   HSL triplets so Tailwind can apply opacity modifiers (e.g. bg-primary/90).
+   ========================================================================= */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;          /* brand blue (#2563eb) */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142.1 70.6% 45.3%;          /* green */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 37.7 92.1% 50.2%;           /* amber */
+    --warning-foreground: 26 83% 14%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 47.4% 11.2%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 37.7 92.1% 50.2%;
+    --warning-foreground: 26 83% 14%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* ============================================================================
+   Reusable component classes (the shared "App*" design language)
+   Used by Django include partials in templates/components/.
+   ========================================================================= */
+@layer components {
+  /* ---- Buttons -------------------------------------------------------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg
+           text-sm font-medium ring-offset-background transition-colors
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+           focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary     { @apply btn h-10 px-4 py-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90; }
+  .btn-secondary   { @apply btn h-10 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80; }
+  .btn-outline     { @apply btn h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground; }
+  .btn-ghost       { @apply btn h-10 px-4 py-2 hover:bg-accent hover:text-accent-foreground; }
+  .btn-destructive { @apply btn h-10 px-4 py-2 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90; }
+  .btn-success     { @apply btn h-10 px-4 py-2 bg-success text-success-foreground shadow-sm hover:bg-success/90; }
+  .btn-sm          { @apply h-9 px-3; }
+  .btn-lg          { @apply h-11 px-6; }
+  .btn-icon        { @apply btn h-10 w-10 p-0; }
+  .btn-icon-sm     { @apply btn h-9 w-9 p-0; }
+
+  /* ---- Card ----------------------------------------------------------- */
+  .card             { @apply rounded-xl border border-border bg-card text-card-foreground shadow-sm; }
+  .card-header      { @apply flex flex-col space-y-1.5 p-6; }
+  .card-title       { @apply text-lg font-semibold leading-none tracking-tight; }
+  .card-description { @apply text-sm text-muted-foreground; }
+  .card-content     { @apply p-6 pt-0; }
+  .card-footer      { @apply flex items-center gap-2 p-6 pt-0; }
+
+  /* ---- Badge ---------------------------------------------------------- */
+  .badge             { @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors; }
+  .badge-default     { @apply badge border-transparent bg-primary text-primary-foreground; }
+  .badge-secondary   { @apply badge border-transparent bg-secondary text-secondary-foreground; }
+  .badge-outline     { @apply badge text-foreground; }
+  .badge-destructive { @apply badge border-transparent bg-destructive text-destructive-foreground; }
+  .badge-success     { @apply badge border-transparent bg-success text-success-foreground; }
+  .badge-warning     { @apply badge border-transparent bg-warning text-warning-foreground; }
+  .badge-muted       { @apply badge border-transparent bg-muted text-muted-foreground; }
+
+  /* ---- Forms ---------------------------------------------------------- */
+  .label  { @apply block text-sm font-medium leading-none text-foreground; }
+  .input  {
+    @apply flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm
+           ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none
+           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .select   { @apply input cursor-pointer pr-8; }
+  .textarea { @apply input h-auto min-h-[80px] py-2; }
+  .field    { @apply space-y-2; }
+  .field-error { @apply text-sm font-medium text-destructive; }
+
+  /* ---- Table ---------------------------------------------------------- */
+  .table-wrap { @apply relative w-full overflow-x-auto; }
+  .table      { @apply w-full caption-bottom text-sm; }
+  .table thead tr { @apply border-b border-border; }
+  .table th   { @apply h-11 px-4 text-left align-middle text-xs font-medium uppercase tracking-wider text-muted-foreground; }
+  .table td   { @apply border-b border-border p-4 align-middle; }
+  .table tbody tr { @apply transition-colors hover:bg-muted/50; }
+  .table tbody tr:last-child td { @apply border-0; }
+
+  /* ---- Typography helpers -------------------------------------------- */
+  .page-title    { @apply text-2xl font-bold tracking-tight text-foreground sm:text-3xl; }
+  .section-title { @apply text-lg font-semibold tracking-tight text-foreground; }
+  .caption       { @apply text-xs text-muted-foreground; }
+}

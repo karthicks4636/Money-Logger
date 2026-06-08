@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{# Layout for authenticated app pages: unified header + content container + mobile nav.
+   Pages set context vars from their view: active_page, action_url, action_text,
+   hide_whatif, whatif_next (same contract as the legacy nav include). #}
+
+{% block body %}
+    {% include "components/header.html" %}
+
+    <main class="mx-auto w-full max-w-7xl px-4 py-6 pb-24 sm:py-8 md:pb-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "components/mobile_nav.html" %}
+{% endblock %}

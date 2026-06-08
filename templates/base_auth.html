@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{# Centered layout for auth pages (login / signup / forgot password). #}
+
+{% block body_class %}bg-gradient-to-br from-background via-background to-muted{% endblock %}
+
+{% block body %}
+    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-10">
+        {# Theme toggle, top-right, so auth pages support dark mode too #}
+        <button type="button" onclick="toggleTheme()" aria-label="Toggle theme"
+                class="btn-icon absolute right-4 top-4 border border-border bg-card text-muted-foreground hover:bg-accent">
+            {% include "components/icon.html" with name="sun" class="block dark:hidden" %}
+            {% include "components/icon.html" with name="moon" class="hidden dark:block" %}
+        </button>
+
+        <div class="w-full max-w-md animate-fade-in-up">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

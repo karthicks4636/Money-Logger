@@ -1,0 +1,16 @@
+{% comment %}
+AppFormField — label + control + help + error for a Django bound field.
+Params:
+  field         a bound form field (required), e.g. form.email
+  label         optional label override (defaults to field.label)
+  control_class optional widget class override (defaults to "input")
+Usage:
+  {% include "components/form_field.html" with field=form.amount %}
+{% endcomment %}
+{% load form_extras %}
+<div class="field">
+    <label class="label" for="{{ field.id_for_label }}">{{ label|default:field.label }}</label>
+    {% if control_class %}{{ field|add_class:control_class }}{% else %}{{ field|add_class:"input" }}{% endif %}
+    {% if field.help_text %}<p class="caption">{{ field.help_text }}</p>{% endif %}
+    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+</div>

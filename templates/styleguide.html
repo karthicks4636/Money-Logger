@@ -1,0 +1,175 @@
+{% extends "base_app.html" %}
+{% load form_extras %}
+{% block title %}Design System - Money Logger{% endblock %}
+
+{% block content %}
+<div class="space-y-10 animate-fade-in-up">
+
+    <!-- Page header -->
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <h1 class="page-title">Design System</h1>
+            <p class="mt-1 text-muted-foreground">Shared components &amp; tokens — the same language across every page.</p>
+        </div>
+        {% include "components/button.html" with variant="primary" text="Primary action" icon="plus" href="#" %}
+    </div>
+
+    <!-- Buttons -->
+    <section class="card">
+        <div class="card-header"><h2 class="card-title">Buttons</h2><p class="card-description">One shared Button component. Variants, sizes, and icon buttons.</p></div>
+        <div class="card-content space-y-4">
+            <div class="flex flex-wrap items-center gap-3">
+                <button class="btn-primary">Primary</button>
+                <button class="btn-secondary">Secondary</button>
+                <button class="btn-outline">Outline</button>
+                <button class="btn-ghost">Ghost</button>
+                <button class="btn-destructive">Destructive</button>
+                <button class="btn-success">Success</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <button class="btn-primary btn-sm">Small</button>
+                <button class="btn-primary">Default</button>
+                <button class="btn-primary btn-lg">Large</button>
+                <button class="btn-primary" disabled>Disabled</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <button class="btn-primary">{% include "components/icon.html" with name="plus" size=16 %}<span>With icon</span></button>
+                <button class="btn-outline">{% include "components/icon.html" with name="download" size=16 %}<span>Export</span></button>
+                <button class="btn-icon border border-input bg-background hover:bg-accent">{% include "components/icon.html" with name="pencil" size=18 %}</button>
+                <button class="btn-icon-sm bg-destructive/10 text-destructive hover:bg-destructive/20">{% include "components/icon.html" with name="trash-2" size=16 %}</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Badges -->
+    <section class="card">
+        <div class="card-header"><h2 class="card-title">Badges</h2><p class="card-description">Status indicators and category pills.</p></div>
+        <div class="card-content flex flex-wrap items-center gap-3">
+            {% include "components/badge.html" with variant="default" text="Default" %}
+            {% include "components/badge.html" with variant="secondary" text="Secondary" %}
+            {% include "components/badge.html" with variant="outline" text="Outline" %}
+            {% include "components/badge.html" with variant="success" text="Income" icon="circle-arrow-up" %}
+            {% include "components/badge.html" with variant="destructive" text="Expense" icon="circle-arrow-down" %}
+            {% include "components/badge.html" with variant="warning" text="What-If" icon="sparkles" %}
+            {% include "components/badge.html" with variant="muted" text="Draft" %}
+        </div>
+    </section>
+
+    <!-- KPI cards -->
+    <section class="space-y-4">
+        <h2 class="section-title">KPI cards</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {% include "components/kpi_card.html" with label="Total Income" value="₹1,24,500.00" icon="circle-arrow-up" tone="success" trend="+12.5%" trend_up=True %}
+            {% include "components/kpi_card.html" with label="Total Expense" value="₹86,200.00" icon="circle-arrow-down" tone="destructive" trend="-4.2%" trend_up=False %}
+            {% include "components/kpi_card.html" with label="Net Balance" value="₹38,300.00" icon="wallet" tone="primary" trend="+30.7%" trend_up=True %}
+            {% include "components/kpi_card.html" with label="Savings" value="₹12,000.00" icon="piggy-bank" tone="warning" %}
+        </div>
+    </section>
+
+    <!-- Form + Table side by side -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Form -->
+        <section class="card">
+            <div class="card-header"><h2 class="card-title">Form controls</h2><p class="card-description">Consistent inputs, labels, and validation states.</p></div>
+            <div class="card-content space-y-4">
+                <div class="field">
+                    <label class="label" for="sg-name">Description</label>
+                    <input id="sg-name" class="input" type="text" placeholder="e.g. Groceries">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="field">
+                        <label class="label" for="sg-amount">Amount</label>
+                        <input id="sg-amount" class="input" type="number" placeholder="0.00">
+                    </div>
+                    <div class="field">
+                        <label class="label" for="sg-type">Type</label>
+                        <select id="sg-type" class="select">
+                            <option>Income</option><option>Expense</option><option>Saving</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label" for="sg-note">Note</label>
+                    <textarea id="sg-note" class="textarea" placeholder="Optional note..."></textarea>
+                </div>
+                <div class="field">
+                    <label class="label" for="sg-err">Invalid example</label>
+                    <input id="sg-err" class="input border-destructive focus-visible:ring-destructive" value="Not a number">
+                    <p class="field-error">Enter a valid amount.</p>
+                </div>
+            </div>
+            <div class="card-footer justify-end">
+                <button class="btn-ghost">Cancel</button>
+                <button class="btn-primary">Save</button>
+            </div>
+        </section>
+
+        <!-- Table -->
+        <section class="card overflow-hidden">
+            <div class="card-header"><h2 class="card-title">Table</h2><p class="card-description">Shared row height, status badges, action column.</p></div>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th>Description</th><th>Type</th><th class="text-right">Amount</th><th class="text-right">Actions</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-medium text-foreground">Salary</td>
+                            <td>{% include "components/badge.html" with variant="success" text="Income" %}</td>
+                            <td class="text-right font-semibold text-success">+₹50,000</td>
+                            <td><div class="flex justify-end gap-2"><button class="btn-icon-sm bg-primary/10 text-primary hover:bg-primary/20">{% include "components/icon.html" with name="pencil" size=14 %}</button><button class="btn-icon-sm bg-destructive/10 text-destructive hover:bg-destructive/20">{% include "components/icon.html" with name="trash-2" size=14 %}</button></div></td>
+                        </tr>
+                        <tr>
+                            <td class="font-medium text-foreground">Groceries</td>
+                            <td>{% include "components/badge.html" with variant="destructive" text="Expense" %}</td>
+                            <td class="text-right font-semibold text-destructive">-₹2,400</td>
+                            <td><div class="flex justify-end gap-2"><button class="btn-icon-sm bg-primary/10 text-primary hover:bg-primary/20">{% include "components/icon.html" with name="pencil" size=14 %}</button><button class="btn-icon-sm bg-destructive/10 text-destructive hover:bg-destructive/20">{% include "components/icon.html" with name="trash-2" size=14 %}</button></div></td>
+                        </tr>
+                        <tr>
+                            <td class="font-medium text-foreground">Emergency Fund</td>
+                            <td>{% include "components/badge.html" with variant="warning" text="Saving" %}</td>
+                            <td class="text-right font-semibold text-warning">₹12,000</td>
+                            <td><div class="flex justify-end gap-2"><button class="btn-icon-sm bg-primary/10 text-primary hover:bg-primary/20">{% include "components/icon.html" with name="pencil" size=14 %}</button><button class="btn-icon-sm bg-destructive/10 text-destructive hover:bg-destructive/20">{% include "components/icon.html" with name="trash-2" size=14 %}</button></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Semantic colors -->
+    <section class="card">
+        <div class="card-header"><h2 class="card-title">Color tokens</h2><p class="card-description">Theme-aware semantic colors — adapt automatically in dark mode.</p></div>
+        <div class="card-content grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            <div class="space-y-1.5"><div class="h-12 rounded-lg bg-primary"></div><p class="caption">Primary</p></div>
+            <div class="space-y-1.5"><div class="h-12 rounded-lg bg-secondary"></div><p class="caption">Secondary</p></div>
+            <div class="space-y-1.5"><div class="h-12 rounded-lg bg-muted"></div><p class="caption">Muted</p></div>
+            <div class="space-y-1.5"><div class="h-12 rounded-lg bg-success"></div><p class="caption">Success</p></div>
+            <div class="space-y-1.5"><div class="h-12 rounded-lg bg-warning"></div><p class="caption">Warning</p></div>
+            <div class="space-y-1.5"><div class="h-12 rounded-lg bg-destructive"></div><p class="caption">Destructive</p></div>
+            <div class="space-y-1.5"><div class="h-12 rounded-lg border border-border bg-card"></div><p class="caption">Card / Border</p></div>
+        </div>
+    </section>
+
+    <!-- Alerts -->
+    <section class="space-y-3">
+        <h2 class="section-title">Alerts</h2>
+        <div class="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm text-foreground">{% include "components/icon.html" with name="info" size=16 class="mt-0.5 text-muted-foreground" %}<span>Informational message using neutral tokens.</span></div>
+        <div class="flex items-start gap-2 rounded-lg border border-success/30 bg-success/10 p-3 text-sm text-success">{% include "components/icon.html" with name="circle-check" size=16 class="mt-0.5" %}<span>Success — your changes were saved.</span></div>
+        <div class="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning">{% include "components/icon.html" with name="triangle-alert" size=16 class="mt-0.5" %}<span>Warning — your savings rate is below 20%.</span></div>
+        <div class="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{% include "components/icon.html" with name="triangle-alert" size=16 class="mt-0.5" %}<span>Error — balance is negative.</span></div>
+    </section>
+
+    <!-- Icons -->
+    <section class="card">
+        <div class="card-header"><h2 class="card-title">Icons</h2><p class="card-description">Lucide set · sizes 16 / 20 / 24 · stroke 2.</p></div>
+        <div class="card-content grid grid-cols-4 gap-4 text-muted-foreground sm:grid-cols-8">
+            {% for i in "wallet,layout-dashboard,heart-pulse,bar-chart-3,file-text,piggy-bank,scroll-text,download,plus,search,pencil,trash-2,calendar,filter,trending-up,trending-down,sun,moon,log-out,settings"|split:"," %}
+            <div class="flex flex-col items-center gap-2 rounded-lg border border-border p-3">
+                {% include "components/icon.html" with name=i size=24 %}
+                <span class="caption truncate w-full text-center">{{ i }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,93 +1,81 @@
 {% load currency_filters %}
-{% load humanize %}
-<div class="table-wrapper">
+<div class="table-wrap">
     {% if transactions %}
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>Date</th>
                 <th>Description</th>
                 <th>Category</th>
                 <th>Method</th>
-                <th style="text-align: right;">Amount</th>
-                <th style="text-align: center; width: 120px;">Actions</th>
+                <th class="text-right">Amount</th>
+                <th class="text-center" style="width:120px;">Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for transaction in transactions %}
-            <tr {% if transaction.is_whatif %}style="background: rgba(245, 158, 11, 0.05);"{% elif transaction.transaction_type == 'SAVING' %}style="background: rgba(147, 51, 234, 0.04);"{% endif %}>
-                <td style="white-space: nowrap; color: #6b7280;">
+            <tr class="transaction-row {% if transaction.is_whatif %}bg-warning/5{% elif transaction.transaction_type == 'SAVING' %}bg-primary/5{% endif %}">
+                {# hidden hook for CSV export #}
+                <span class="transaction-type hidden">{{ transaction.transaction_type }}</span>
+                <td class="transaction-date whitespace-nowrap text-muted-foreground">
                     {{ transaction.date|date:"M d, Y" }}
                     {% if transaction.is_whatif %}
-                    <span style="display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 2px 7px; background: linear-gradient(to right, #f59e0b, #ea580c); color: white; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em; vertical-align: middle;">
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                        SIMULATED
-                    </span>
+                        {% include "components/badge.html" with variant="warning" text="Simulated" icon="sparkles" extra="ml-1.5 align-middle" %}
                     {% endif %}
                 </td>
-                <td style="color: #111827;">{{ transaction.description|default:"-" }}</td>
-                <td><span class="category-badge">{{ transaction.category }}</span></td>
-                <td>
+                <td class="transaction-description font-medium text-foreground">{{ transaction.description|default:"-" }}</td>
+                <td class="transaction-category">
+                    {% include "components/badge.html" with variant="muted" text=transaction.category %}
+                </td>
+                <td class="transaction-money-type">
                     {% if transaction.transaction_type == 'SWITCH' %}
-                        <div class="payment-method">
-                            <svg class="payment-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #2563eb;"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                        <span class="flex items-center gap-1.5 text-muted-foreground">
+                            {% include "components/icon.html" with name="arrow-left-right" size=16 class="text-primary" %}
                             <span>{% if transaction.switch_direction == 'UPI_TO_HAND' %}UPI → Cash{% else %}Cash → UPI{% endif %}</span>
-                        </div>
+                        </span>
                     {% elif transaction.transaction_type == 'SAVING' %}
-                        <div class="payment-method">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #9333ea;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            <span>{% if transaction.amount > 0 %}from {% else %}to {% endif %}{{ transaction.money_type|cut:" CASH"|lower }}</span>
-                        </div>
+                        <span class="flex items-center gap-1.5 text-muted-foreground">
+                            {% include "components/icon.html" with name="lock" size=16 class="text-warning" %}
+                            <span class="capitalize">{% if transaction.amount > 0 %}from {% else %}to {% endif %}{{ transaction.money_type|cut:" CASH"|lower }}</span>
+                        </span>
                     {% else %}
-                        <div class="payment-method">
+                        <span class="flex items-center gap-1.5 text-muted-foreground">
                             {% if transaction.money_type == 'UPI CASH' %}
-                                <svg class="payment-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6366f1;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                                {% include "components/icon.html" with name="credit-card" size=16 class="text-primary" %}<span>UPI</span>
                             {% else %}
-                                <svg class="payment-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #16a34a;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                {% include "components/icon.html" with name="banknote" size=16 class="text-success" %}<span>Cash</span>
                             {% endif %}
-                            <span style="text-transform: capitalize;">{% if transaction.money_type == 'UPI CASH' %}upi{% else %}cash{% endif %}</span>
-                        </div>
+                        </span>
                     {% endif %}
                 </td>
-                <td style="text-align: right;">
-                    <span class="amount {% if transaction.transaction_type == 'INCOME' %}positive{% elif transaction.transaction_type == 'EXPENSE' %}negative{% elif transaction.transaction_type == 'SAVING' %}saving{% else %}switch{% endif %}">
-                        {% if transaction.transaction_type == 'INCOME' %}+{% elif transaction.transaction_type == 'EXPENSE' %}-{% elif transaction.transaction_type == 'SAVING' %}🔒{% else %}↔{% endif %}₹{{ transaction.amount|indian_currency }}
-                    </span>
+                <td class="transaction-amount text-right font-semibold
+                    {% if transaction.transaction_type == 'INCOME' %}text-success
+                    {% elif transaction.transaction_type == 'EXPENSE' %}text-destructive
+                    {% elif transaction.transaction_type == 'SAVING' %}text-warning
+                    {% else %}text-primary{% endif %}">
+                    {% if transaction.transaction_type == 'INCOME' %}+{% elif transaction.transaction_type == 'EXPENSE' %}−{% endif %}₹{{ transaction.amount|indian_currency }}
                 </td>
-                <td style="text-align: center;">
-                    <div class="action-buttons">
+                <td>
+                    <div class="flex items-center justify-center gap-2">
                         {% if transaction.is_whatif %}
-                        <button class="action-btn edit-btn" onclick="window.location.href='/ledger/whatif/{{ transaction.id }}/edit/'" title="Edit Simulated">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
+                        <button class="btn-icon-sm bg-primary/10 text-primary hover:bg-primary/20"
+                                onclick="window.location.href='/ledger/whatif/{{ transaction.id }}/edit/'" title="Edit Simulated">
+                            {% include "components/icon.html" with name="pencil" size=14 %}
                         </button>
-                        <form method="post" action="{% url 'confirm_whatif_transaction' transaction.id %}" style="display:inline;">
+                        <form method="post" action="{% url 'confirm_whatif_transaction' transaction.id %}" class="inline">
                             {% csrf_token %}
-                            <button type="submit"
-                                    title="Confirm — save as real transaction"
-                                    style="display:inline-flex; align-items:center; gap:4px; padding:5px 10px; background:linear-gradient(to right,#16a34a,#22c55e); color:white; border:none; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.2s;"
-                                    onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 8px rgba(22,163,74,0.3)'"
-                                    onmouseout="this.style.transform='';this.style.boxShadow=''">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Confirm
+                            <button type="submit" class="btn-success btn-sm" title="Confirm — save as real transaction">
+                                {% include "components/icon.html" with name="check" size=14 %}<span>Confirm</span>
                             </button>
                         </form>
                         {% else %}
-                        <button class="action-btn edit-btn" onclick="editTransaction({{ transaction.id }}, '{{ transaction.transaction_type }}')" title="Edit Transaction">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
+                        <button class="btn-icon-sm bg-primary/10 text-primary hover:bg-primary/20"
+                                onclick="editTransaction({{ transaction.id }}, '{{ transaction.transaction_type }}')" title="Edit Transaction">
+                            {% include "components/icon.html" with name="pencil" size=14 %}
                         </button>
-                        <button class="action-btn delete-btn" onclick="deleteTransaction({{ transaction.id }}, '{{ transaction.description|escapejs }}')" title="Delete Transaction">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3,6 5,6 21,6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                <line x1="10" y1="11" x2="10" y2="17"></line>
-                                <line x1="14" y1="11" x2="14" y2="17"></line>
-                            </svg>
+                        <button class="btn-icon-sm bg-destructive/10 text-destructive hover:bg-destructive/20"
+                                onclick="deleteTransaction({{ transaction.id }}, '{{ transaction.description|escapejs }}')" title="Delete Transaction">
+                            {% include "components/icon.html" with name="trash-2" size=14 %}
                         </button>
                         {% endif %}
                     </div>
@@ -97,24 +85,26 @@
         </tbody>
     </table>
     {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-        </div>
-        <p>No transactions found</p>
+    <div class="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted-foreground">
+        {% include "components/icon.html" with name="search" size=40 %}
+        <p class="text-sm font-medium">No transactions found</p>
     </div>
     {% endif %}
 </div>
 
 <!-- Pagination -->
 {% if transactions.has_other_pages %}
-<div class="pagination" id="paginationContainer">
+<div class="flex flex-wrap items-center justify-center gap-3 p-6" id="paginationContainer">
     {% if transactions.has_previous %}
-        <a href="#" class="pagination-link" data-page="{{ transactions.previous_page_number }}">← Previous</a>
+        <a href="#" class="pagination-link btn-outline btn-sm" data-page="{{ transactions.previous_page_number }}">
+            {% include "components/icon.html" with name="chevron-right" size=16 class="rotate-180" %}<span>Previous</span>
+        </a>
     {% endif %}
-    <span>Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}</span>
+    <span class="text-sm font-medium text-muted-foreground">Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}</span>
     {% if transactions.has_next %}
-        <a href="#" class="pagination-link" data-page="{{ transactions.next_page_number }}">Next →</a>
+        <a href="#" class="pagination-link btn-outline btn-sm" data-page="{{ transactions.next_page_number }}">
+            <span>Next</span>{% include "components/icon.html" with name="chevron-right" size=16 %}
+        </a>
     {% endif %}
 </div>
 {% endif %}

@@ -1,0 +1,76 @@
+{% comment %}
+AppMobileNav — bottom navigation bar + "More" sheet (mobile only).
+Reads: active_page, show_export
+{% endcomment %}
+<nav class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
+    <div class="mx-auto flex max-w-md items-center justify-around px-2 py-1.5">
+        {% include "components/mobile_nav_item.html" with url_name="dashboard" key="dashboard" label="Dashboard" icon="layout-dashboard" %}
+        {% include "components/mobile_nav_item.html" with url_name="survival" key="survival" label="Survival" icon="heart-pulse" %}
+        {% include "components/mobile_nav_item.html" with url_name="analytics" key="analytics" label="Analytics" icon="bar-chart-3" %}
+        {% include "components/mobile_nav_item.html" with url_name="budget_list" key="budget" label="Budget" icon="wallet" %}
+        <button type="button" onclick="openMobileMore()"
+                class="flex min-w-[60px] flex-col items-center gap-1 rounded-lg px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+            {% include "components/icon.html" with name="ellipsis-vertical" size=20 %}
+            <span class="text-xs font-medium">More</span>
+        </button>
+    </div>
+</nav>
+
+<!-- More sheet -->
+<div id="mobileMoreOverlay" onclick="closeMobileMore()"
+     class="fixed inset-0 z-50 hidden items-end bg-black/50 backdrop-blur-sm md:hidden">
+    <div onclick="event.stopPropagation()"
+         class="w-full animate-slide-down rounded-t-2xl border-t border-border bg-card p-5 text-card-foreground">
+        <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-foreground">More Options</h3>
+            <button type="button" onclick="closeMobileMore()"
+                    class="btn-icon-sm border border-border bg-background text-muted-foreground hover:bg-accent">
+                {% include "components/icon.html" with name="x" size=18 %}
+            </button>
+        </div>
+
+        <div class="mb-3 flex items-center gap-3 rounded-xl bg-muted p-3">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground">
+                {{ request.user.username|first|upper }}
+            </span>
+            <span class="min-w-0">
+                <span class="block truncate text-sm font-semibold text-foreground">{{ request.user.username }}</span>
+                <span class="block truncate text-xs text-muted-foreground">{{ request.user.email }}</span>
+            </span>
+        </div>
+
+        <div class="space-y-1">
+            <a href="{% url 'notes_list' %}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                {% include "components/icon.html" with name="file-text" size=20 %}<span>Notes</span>
+            </a>
+            <a href="{% url 'saving_dashboard' %}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                {% include "components/icon.html" with name="piggy-bank" size=20 %}<span>Savings</span>
+            </a>
+            <a href="{% url 'activity_log' %}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                {% include "components/icon.html" with name="scroll-text" size=20 %}<span>Activity Log</span>
+            </a>
+            {% if show_export %}
+            <button type="button" onclick="exportTransactions(); closeMobileMore();" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                {% include "components/icon.html" with name="download" size=20 %}<span>Export CSV</span>
+            </button>
+            {% endif %}
+            <div class="my-1 h-px bg-border"></div>
+            <a href="{% url 'logout' %}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10">
+                {% include "components/icon.html" with name="log-out" size=20 %}<span>Logout</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openMobileMore() {
+        var o = document.getElementById("mobileMoreOverlay");
+        o.classList.remove("hidden");
+        o.classList.add("flex");
+    }
+    function closeMobileMore() {
+        var o = document.getElementById("mobileMoreOverlay");
+        o.classList.add("hidden");
+        o.classList.remove("flex");
+    }
+</script>

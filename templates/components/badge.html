@@ -1,0 +1,14 @@
+{% comment %}
+AppBadge — status / category pill.
+Params:
+  variant  default | secondary | outline | destructive | success | warning | muted
+  text     label
+  icon     optional Lucide icon name (rendered before text, size 12)
+Example:
+  {% include "components/badge.html" with variant="success" text="Active" icon="circle-check" %}
+{% endcomment %}
+{% spaceless %}
+<span class="badge-{{ variant|default:'default' }}{% if extra %} {{ extra }}{% endif %}">
+    {% if icon %}{% include "components/icon.html" with name=icon size=12 %}{% endif %}{{ text }}
+</span>
+{% endspaceless %}

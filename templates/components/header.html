@@ -1,0 +1,104 @@
+{% comment %}
+AppHeader — unified top navigation (desktop). Reads from context:
+  active_page, action_url, action_text, hide_whatif, whatif_next, show_export
+{% endcomment %}
+<header class="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl">
+    <div class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4">
+
+        <!-- Brand -->
+        <a href="{% url 'dashboard' %}" class="flex items-center gap-3">
+            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+                {% include "components/icon.html" with name="wallet" size=20 %}
+            </span>
+            <span class="hidden sm:block leading-tight">
+                <span class="block text-base font-bold tracking-tight text-foreground">Money Logger</span>
+                <span class="block text-xs text-muted-foreground">Financial Survival Tracker</span>
+            </span>
+        </a>
+
+        <!-- Desktop nav -->
+        <nav class="ml-4 hidden items-center gap-1 md:flex">
+            {% include "components/nav_link.html" with url_name="dashboard" key="dashboard" label="Dashboard" icon="layout-dashboard" %}
+            {% include "components/nav_link.html" with url_name="survival" key="survival" label="Survival" icon="heart-pulse" %}
+            {% include "components/nav_link.html" with url_name="analytics" key="analytics" label="Analytics" icon="bar-chart-3" %}
+            {% include "components/nav_link.html" with url_name="budget_list" key="budget" label="Budget" icon="wallet" %}
+            {% include "components/nav_link.html" with url_name="notes_list" key="notes" label="Notes" icon="file-text" %}
+        </nav>
+
+        <div class="ml-auto flex items-center gap-2">
+
+            <!-- What-If toggle -->
+            {% if not hide_whatif %}
+            <form method="post" action="{% url 'toggle_whatif' %}" class="hidden sm:block">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url whatif_next|default:'dashboard' %}">
+                <button type="submit"
+                        class="{% if request.session.whatif_mode %}btn btn-sm bg-warning text-warning-foreground hover:bg-warning/90{% else %}btn-outline btn-sm{% endif %}">
+                    {% include "components/icon.html" with name="sparkles" size=16 %}
+                    <span>{% if request.session.whatif_mode %}Exit What-If{% else %}What-If{% endif %}</span>
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- Theme toggle -->
+            <button type="button" onclick="toggleTheme()" aria-label="Toggle theme"
+                    class="btn-icon-sm border border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                {% include "components/icon.html" with name="sun" size=18 class="block dark:hidden" %}
+                {% include "components/icon.html" with name="moon" size=18 class="hidden dark:block" %}
+            </button>
+
+            <!-- Settings dropdown (desktop) -->
+            <div class="relative hidden md:block" id="appSettings">
+                <button type="button" onclick="toggleAppMenu()" aria-label="Menu"
+                        class="btn-icon-sm border border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                    {% include "components/icon.html" with name="ellipsis-vertical" size=18 %}
+                </button>
+                <div id="appSettingsMenu"
+                     class="absolute right-0 top-[calc(100%+0.5rem)] z-50 hidden w-60 origin-top-right animate-scale-in rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg">
+                    <div class="flex items-center gap-3 px-2 py-2">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                            {{ request.user.username|first|upper }}
+                        </span>
+                        <span class="min-w-0">
+                            <span class="block truncate text-sm font-semibold text-foreground">{{ request.user.username }}</span>
+                            <span class="block truncate text-xs text-muted-foreground">{{ request.user.email }}</span>
+                        </span>
+                    </div>
+                    <div class="my-1 h-px bg-border"></div>
+                    <a href="{% url 'saving_dashboard' %}" class="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                        {% include "components/icon.html" with name="piggy-bank" size=18 %}<span>Savings</span>
+                    </a>
+                    <a href="{% url 'activity_log' %}" class="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                        {% include "components/icon.html" with name="scroll-text" size=18 %}<span>Activity Log</span>
+                    </a>
+                    {% if show_export %}
+                    <button type="button" onclick="exportTransactions()" class="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                        {% include "components/icon.html" with name="download" size=18 %}<span>Export CSV</span>
+                    </button>
+                    {% endif %}
+                    <div class="my-1 h-px bg-border"></div>
+                    <a href="{% url 'logout' %}" class="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10">
+                        {% include "components/icon.html" with name="log-out" size=18 %}<span>Logout</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Primary action -->
+            <a href="{% url action_url|default:'add_transaction' %}" class="btn-primary hidden md:inline-flex">
+                {% include "components/icon.html" with name="plus" size=18 %}
+                <span>{{ action_text|default:'Add Transaction' }}</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<script>
+    function toggleAppMenu() {
+        document.getElementById("appSettingsMenu").classList.toggle("hidden");
+    }
+    document.addEventListener("click", function (e) {
+        var wrap = document.getElementById("appSettings");
+        var menu = document.getElementById("appSettingsMenu");
+        if (wrap && menu && !wrap.contains(e.target)) menu.classList.add("hidden");
+    });
+</script>

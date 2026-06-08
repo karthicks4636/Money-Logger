@@ -198,6 +198,12 @@ def dashboard(request):
         "money_types": [("UPI CASH", "UPI Cash"), ("HAND CASH", "Hand Cash")],
         "warning_message": warning_message,
         "whatif": whatif,
+        # Header / layout context for base_app
+        "active_page": "dashboard",
+        "action_url": "add_transaction",
+        "action_text": "Add Transaction",
+        "whatif_next": "dashboard",
+        "show_export": True,
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':

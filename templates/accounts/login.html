@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/media/logo/logo.png">
-    <title>Login - Money Logger</title>
+{% extends "base_auth.html" %}
+
+{% block title %}Login - Money Logger{% endblock %}
+
+{% block head_extra %}
     {% if RECAPTCHA_ENABLED and RECAPTCHA_SITE_KEY %}
         {% if RECAPTCHA_VERSION == 'v3' %}
             <script src="https://www.google.com/recaptcha/api.js?render={{ RECAPTCHA_SITE_KEY }}"></script>
@@ -12,343 +10,108 @@
             <script src="https://www.google.com/recaptcha/api.js" async defer></script>
         {% endif %}
     {% endif %}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% endblock %}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(to bottom right, #eff6ff, #faf5ff, #fce7f3);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+{% block content %}
+<div class="card p-8 sm:p-10">
+    <!-- Brand -->
+    <div class="mb-8 flex flex-col items-center text-center">
+        <span class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+            {% include "components/icon.html" with name="wallet" size=32 %}
+        </span>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">Money Logger</h1>
+        <p class="mt-1 text-sm text-muted-foreground">Welcome back! Please sign in to your account.</p>
+    </div>
 
-        .login-container {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-
-        .logo p {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #34495e;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e1e8ed;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #fff;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-group input::placeholder {
-            color: #95a5a6;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
-        }
-
-        .error-messages {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .recaptcha-wrap { margin-top: 6px; margin-bottom: 10px; display: flex; justify-content: center; }
-        .recaptcha-wrap .g-recaptcha { transform: scale(0.85); transform-origin: top left; }
-
-        .forgot-password {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .forgot-password a {
-            color: #2563eb;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
-        }
-
-        .password-wrapper { position: relative; }
-        .password-wrapper input { padding-right: 45px !important; }
-        .toggle-pass {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer; padding: 4px;
-            color: #95a5a6; display: flex; align-items: center;
-        }
-        .toggle-pass:hover { color: #2563eb; }
-
-        .divider {
-            text-align: center;
-            margin: 25px 0;
-            position: relative;
-            color: #95a5a6;
-            font-size: 0.85rem;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e1e8ed;
-            z-index: 1;
-        }
-
-        .divider span {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 0 15px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .signup-link {
-            text-align: center;
-            margin-top: 20px;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .signup-link a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .signup-link a:hover {
-            text-decoration: underline;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 480px) {
-            body {
-                padding: 15px;
-            }
-
-            .login-container {
-                padding: 30px 25px;
-                border-radius: 16px;
-            }
-
-            .logo h1 {
-                font-size: 1.6rem;
-            }
-
-            .form-group input {
-                padding: 12px 14px;
-                font-size: 16px; /* Prevents zoom on iOS */
-            }
-
-            .login-btn {
-                padding: 14px;
-                font-size: 0.95rem;
-            }
-
-            .recaptcha-wrap .g-recaptcha { transform: scale(0.75); transform-origin: top left; }
-        }
-
-        @media (max-width: 320px) {
-            .login-container {
-                padding: 25px 20px;
-            }
-
-            .logo h1 {
-                font-size: 1.4rem;
-            }
-        }
-
-        /* Desktop enhancements */
-        @media (min-width: 768px) {
-            .login-container {
-                padding: 50px;
-            }
-
-            .logo h1 {
-                font-size: 2.2rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="logo">
-            <img src="/media/logo/logo.png" alt="Logo" style="height:80px;margin-bottom:10px;">
-            <h1>Money Logger</h1>
-            <p>Welcome back! Please sign in to your account</p>
-        </div>
-
-        {% if form.errors %}
-            <div class="error-messages">
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        <div>{{ error }}</div>
-                    {% endfor %}
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <form method="post" id="login-form">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="{{ form.username.id_for_label }}">Username</label>
-                {{ form.username }}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}">Password</label>
-                <div class="password-wrapper">
-                    {{ form.password }}
-                    <button type="button" class="toggle-pass" onclick="togglePass('{{ form.password.id_for_label }}', this)" tabindex="-1">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            {% if RECAPTCHA_ENABLED and RECAPTCHA_SITE_KEY %}
-                {% if RECAPTCHA_VERSION == 'v3' %}
-                    <input type="hidden" name="g-recaptcha-response" id="recaptcha-token">
-                {% else %}
-                    <div class="recaptcha-wrap">
-                        <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_SITE_KEY }}" data-size="compact"></div>
-                    </div>
-                {% endif %}
-            {% endif %}
-
-            <button type="submit" class="login-btn">Sign In</button>
-        </form>
-
-        <div class="forgot-password">
-            <a href="{% url 'forgot_password' %}">Forgot your password?</a>
-        </div>
-
-        <div class="divider">
-            <span>or</span>
-        </div>
-
-        <div class="signup-link">
-            Don't have an account? <a href="{% url 'signup' %}">Sign up</a>
+    {% if form.errors %}
+    <div class="mb-6 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+        {% include "components/icon.html" with name="triangle-alert" size=16 class="mt-0.5" %}
+        <div>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+            {% endfor %}
         </div>
     </div>
-    <script>
-        function togglePass(id, btn) {
-            const inp = document.getElementById(id);
-            if (!inp) return;
-            const isPass = inp.type === 'password';
-            inp.type = isPass ? 'text' : 'password';
-            btn.innerHTML = isPass
-                ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
-                : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-        }
+    {% endif %}
 
-        {% if RECAPTCHA_ENABLED and RECAPTCHA_SITE_KEY and RECAPTCHA_VERSION == 'v3' %}
-        (function () {
-            const form = document.getElementById('login-form');
-            if (!form || typeof grecaptcha === 'undefined') return;
+    <form method="post" id="login-form" class="space-y-5">
+        {% csrf_token %}
 
-            form.addEventListener('submit', async function (e) {
-                const tokenInput = document.getElementById('recaptcha-token');
-                if (!tokenInput) return;
-                if (tokenInput.value) return;
+        <div class="field">
+            <label class="label" for="id_username">Username</label>
+            <input type="text" name="username" id="id_username" class="input" autocomplete="username"
+                   value="{{ form.username.value|default:'' }}" placeholder="Enter your username" required autofocus>
+        </div>
 
-                e.preventDefault();
-                try {
-                    const token = await grecaptcha.execute('{{ RECAPTCHA_SITE_KEY }}', { action: 'login' });
-                    tokenInput.value = token;
-                } catch (_) {
-                    tokenInput.value = '';
-                }
-                form.submit();
-            });
-        })();
+        <div class="field">
+            <label class="label" for="id_password">Password</label>
+            <div class="relative">
+                <input type="password" name="password" id="id_password" class="input pr-11" autocomplete="current-password"
+                       placeholder="Enter your password" required>
+                <button type="button" tabindex="-1" onclick="togglePass('id_password', this)" aria-label="Show password"
+                        class="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground">
+                    <span data-eye>{% include "components/icon.html" with name="eye" size=18 %}</span>
+                    <span data-eye-off class="hidden">{% include "components/icon.html" with name="eye-off" size=18 %}</span>
+                </button>
+            </div>
+        </div>
+
+        {% if RECAPTCHA_ENABLED and RECAPTCHA_SITE_KEY %}
+            {% if RECAPTCHA_VERSION == 'v3' %}
+                <input type="hidden" name="g-recaptcha-response" id="recaptcha-token">
+            {% else %}
+                <div class="flex justify-center">
+                    <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_SITE_KEY }}"></div>
+                </div>
+            {% endif %}
         {% endif %}
-    </script>
-</body>
-</html>
+
+        <button type="submit" class="btn-primary btn-lg w-full">
+            {% include "components/icon.html" with name="log-in" size=18 %}
+            <span>Sign In</span>
+        </button>
+    </form>
+
+    <div class="mt-5 text-center">
+        <a href="{% url 'forgot_password' %}" class="text-sm font-medium text-primary hover:underline">Forgot your password?</a>
+    </div>
+
+    <div class="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+        <div class="h-px flex-1 bg-border"></div><span>or</span><div class="h-px flex-1 bg-border"></div>
+    </div>
+
+    <p class="text-center text-sm text-muted-foreground">
+        Don't have an account?
+        <a href="{% url 'signup' %}" class="font-semibold text-primary hover:underline">Sign up</a>
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePass(id, btn) {
+        var inp = document.getElementById(id);
+        if (!inp) return;
+        var show = inp.type === "password";
+        inp.type = show ? "text" : "password";
+        btn.querySelector("[data-eye]").classList.toggle("hidden", show);
+        btn.querySelector("[data-eye-off]").classList.toggle("hidden", !show);
+    }
+
+    {% if RECAPTCHA_ENABLED and RECAPTCHA_SITE_KEY and RECAPTCHA_VERSION == 'v3' %}
+    (function () {
+        var form = document.getElementById("login-form");
+        if (!form || typeof grecaptcha === "undefined") return;
+        form.addEventListener("submit", function (e) {
+            var tokenInput = document.getElementById("recaptcha-token");
+            if (!tokenInput || tokenInput.value) return;
+            e.preventDefault();
+            grecaptcha.execute("{{ RECAPTCHA_SITE_KEY }}", { action: "login" }).then(function (token) {
+                tokenInput.value = token;
+                form.submit();
+            }).catch(function () { form.submit(); });
+        });
+    })();
+    {% endif %}
+</script>
+{% endblock %}

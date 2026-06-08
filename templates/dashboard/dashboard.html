@@ -1,1284 +1,371 @@
+{% extends "base_app.html" %}
 {% load currency_filters %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/media/logo/logo.png">
-    <title>Dashboard - Money Logger</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: linear-gradient(to bottom right, #eff6ff, #faf5ff, #fce7f3); min-height: 100vh; }
-        .container { max-width: 1280px; margin: 0 auto; padding: 2rem 1rem; }
-        
-        /* Header */
-        .header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(24px); background: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.2); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-        .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; height: 4rem; }
-        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
-        .logo-icon { width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #3b82f6, #9333ea); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .logo-text { font-weight: 700; font-size: 1.25rem; background: linear-gradient(to right, #2563eb, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .logo-subtitle { font-size: 0.75rem; color: #6b7280; }
-        .nav-links { display: flex; align-items: center; gap: 0.5rem; }
-        .nav-link { padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s; }
-        .nav-link:hover { background: rgba(255,255,255,0.5); color: #111827; }
-        .nav-link.active { color: #2563eb; background: linear-gradient(to right, #dbeafe, #e9d5ff); }
-        .btn-add { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(to right, #2563eb, #9333ea); color: white; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: box-shadow 0.2s; }
-        .btn-add:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        /* What-If Mode Toggle */
-        .whatif-toggle { margin: 0 0.5rem; }
-        .whatif-btn { 
-            display: flex; 
-            align-items: center; 
-            gap: 0.5rem; 
-            padding: 0.5rem 1rem; 
-            background: rgba(255,255,255,0.8); 
-            backdrop-filter: blur(10px); 
-            color: #6b7280; 
-            border: 1px solid #e5e7eb; 
-            border-radius: 0.75rem; 
-            font-size: 0.875rem; 
-            font-weight: 500; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-        }
-        .whatif-btn:hover { 
-            background: rgba(255,255,255,0.9); 
-            color: #374151; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        }
-        .whatif-btn.active { 
-            background: linear-gradient(to right, #f59e0b, #ea580c); 
-            color: white; 
-            border-color: transparent; 
-        }
-        .whatif-btn.active:hover { 
-            background: linear-gradient(to right, #d97706, #c2410c); 
-        }
-        
-        /* Settings Dropdown */
-        .settings-dropdown {
-            position: relative;
-        }
-        
-        .settings-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 0.75rem;
-            background: rgba(255,255,255,0.5);
-            border: 1px solid rgba(229,231,235,0.5);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .settings-btn:hover {
-            background: rgba(255,255,255,0.8);
-            border-color: #e5e7eb;
-        }
-        
-        .settings-btn svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            color: #6b7280;
-        }
-        
-        .settings-menu {
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            right: 0;
-            min-width: 200px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 0.75rem;
-            border: 1px solid rgba(229,231,235,0.5);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 0.5rem;
-            display: none;
-            z-index: 100;
-            animation: slideDown 0.2s ease-out;
-        }
-        
-        .settings-menu.active {
-            display: block;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .settings-menu-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            text-decoration: none;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-        }
-        
-        .settings-menu-item:hover {
-            background: rgba(59,130,246,0.1);
-            color: #2563eb;
-        }
-        
-        .settings-menu-item svg {
-            width: 1.125rem;
-            height: 1.125rem;
-            color: currentColor;
-        }
-        
-        .settings-menu-divider {
-            height: 1px;
-            background: rgba(229,231,235,0.5);
-            margin: 0.5rem 0;
-        }
-        
-        .settings-menu-item.logout-item {
-            color: #ef4444;
-        }
-        
-        .settings-menu-item.logout-item:hover {
-            background: rgba(239,68,68,0.1);
-            color: #dc2626;
-        }
-        
-        /* Insight Banner */
-        .insight-banner { position: relative; overflow: hidden; border-radius: 1rem; padding: 1rem 1.5rem; color: white; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: 0 8px 16px rgba(0,0,0,0.1); margin-bottom: 2rem; animation: slideDown 0.5s ease-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .insight-content { display: flex; align-items: center; gap: 0.75rem; }
-        .insight-icon { font-size: 1.5rem; }
-        .insight-text h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .insight-text p { font-size: 0.875rem; opacity: 0.8; }
-        .insight-btn { padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; color: white; text-decoration: none; transition: all 0.3s; }
-        .insight-btn:hover { background: rgba(255,255,255,0.3); }
-        
-        /* Summary Grid */
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { position: relative; overflow: hidden; border-radius: 1rem; padding: 1.5rem; backdrop-filter: blur(10px); background: rgba(255,255,255,0.8); border: 1px solid rgba(229,231,235,0.5); box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s; animation: fadeInUp 0.6s ease-out; animation-fill-mode: both; }
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
-        .stat-card:nth-child(4) { animation-delay: 0.4s; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
-        .stat-card::before { content: ''; position: absolute; inset: 0; border-radius: 1rem; opacity: 0.1; z-index: -1; }
-        .stat-card.income::before { background: linear-gradient(to bottom right, #10b981, #059669); }
-        .stat-card.expense::before { background: linear-gradient(to bottom right, #ef4444, #dc2626); }
-        .stat-card.balance::before { background: linear-gradient(to bottom right, #3b82f6, #9333ea, #ec4899); }
-        .stat-card.methods::before { background: linear-gradient(to bottom right, #6366f1, #3b82f6); }
-        .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-        .stat-icon { width: 3rem; height: 3rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .stat-card.income .stat-icon { background: #dcfce7; color: #16a34a; }
-        .stat-card.expense .stat-icon { background: #fee2e2; color: #dc2626; }
-        .stat-card.balance .stat-icon { background: linear-gradient(to bottom right, #dbeafe, #e9d5ff); }
-        .stat-card.methods .stat-icon { background: #e0e7ff; color: #6366f1; }
-        .stat-trend { font-size: 0.875rem; font-weight: 500; }
-        .stat-trend.positive { color: #16a34a; }
-        .stat-trend.negative { color: #dc2626; }
-        .stat-label { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem; }
-        .stat-value { font-size: 1.875rem; font-weight: 700; }
-        .stat-card.income .stat-value { color: #16a34a; }
-        .stat-card.expense .stat-value { color: #dc2626; }
-        .stat-card.balance .stat-value { background: linear-gradient(to right, #2563eb, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+{% block title %}Dashboard - Money Logger{% endblock %}
 
-        /* Eye Toggle */
-        .eye-toggle { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 0.5rem; border: none; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s; color: #6b7280; margin-left: 0.5rem; }
-        .eye-toggle:hover { background: rgba(255,255,255,0.8); color: #374151; }
-        .sensitive-hidden .eye-toggle .eye-open { display: none; }
-        .sensitive-hidden .eye-toggle .eye-closed { display: block; }
-        .eye-toggle .eye-open { display: block; }
-        .eye-toggle .eye-closed { display: none; }
-        .sensitive-hidden .savings-line { display: none; }
-        .sensitive-hidden .net-with-savings { display: none; }
-        .net-without-savings { display: none; }
-        .sensitive-hidden .net-without-savings { display: inline; }
-        
-        /* Methods Card */
-        .methods-breakdown { display: flex; flex-direction: column; gap: 0.75rem; }
-        .method-item { display: flex; align-items: center; justify-content: space-between; }
-        .method-info { display: flex; align-items: center; gap: 0.5rem; }
-        .method-icon { width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-        .method-icon.upi { background: #e0e7ff; color: #6366f1; }
-        .method-icon.cash { background: #dcfce7; color: #16a34a; }
-        .method-label { font-size: 0.875rem; color: #6b7280; }
-        .method-value { font-size: 1.125rem; font-weight: 700; color: #111827; }
-        .method-value.upi { color: #9333ea; } /* Violet for UPI Cash */
-        .method-value.cash { color: #16a34a; } /* Green for Hand Cash */
-        .method-divider { height: 1px; background: linear-gradient(to right, transparent, #e5e7eb, transparent); }
-        
-        /* Filters */
-        .filters-section { margin-bottom: 1rem; }
-        .filters-wrapper { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
-        .search-box { flex: 1; min-width: 200px; position: relative; }
-        .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #9ca3af; }
-        .search-box input { width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 1rem; transition: all 0.3s; }
-        .search-box input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        .filter-group { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
-        .filter-icon { color: #9ca3af; }
-        .filter-group select { padding: 0.75rem 1rem; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.875rem; cursor: pointer; transition: all 0.3s; }
-        .filter-group select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        
-        /* Table */
-        .table-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 1rem; border: 1px solid rgba(229,231,235,0.5); box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
+{% block content %}
+<div class="space-y-6 animate-fade-in-up">
 
-        /* Date Filter Section */
-        .date-filter-section {
-            padding: 20px 24px;
-            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-            background: linear-gradient(to right, rgba(219,234,254,0.3), rgba(233,213,255,0.3));
-        }
-
-        .date-filter-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .date-filter-header h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #374151;
-            margin: 0;
-        }
-
-        .date-filter-form {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .date-inputs {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .date-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .date-input-group label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-        }
-
-        .date-input {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            background: white;
-            transition: all 0.2s;
-            min-width: 130px;
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .date-separator {
-            display: flex;
-            align-items: center;
-            color: #6b7280;
-            margin: 0 4px;
-        }
-
-        .date-filter-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .apply-btn {
-            background: linear-gradient(to right, #2563eb, #3b82f6);
-            color: white;
-        }
-
-        .apply-btn:hover {
-            background: linear-gradient(to right, #1d4ed8, #2563eb);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .clear-btn {
-            background: #f3f4f6;
-            color: #6b7280;
-            border: 1px solid #d1d5db;
-        }
-
-        .clear-btn:hover {
-            background: #e5e7eb;
-            color: #374151;
-        }
-
-        .quick-filters {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
-        }
-
-        .quick-filter-btn {
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .quick-filter-btn:hover {
-            background: white;
-            color: #2563eb;
-            border-color: #2563eb;
-        }
-
-        .quick-filter-btn.active {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-        .table-header { padding: 1rem 1.5rem; background: linear-gradient(to right, rgba(219,234,254,0.5), rgba(233,213,255,0.5)); border-bottom: 1px solid rgba(229,231,235,0.5); }
-        .table-header h2 { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .table-header p { font-size: 0.875rem; color: #6b7280; }
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        thead { background: rgba(249,250,251,0.5); }
-        th { padding: 0.75rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
-        td { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(229,231,235,0.5); font-size: 0.875rem; }
-        tbody tr { transition: background 0.2s; }
-        tbody tr:hover { background: rgba(249,250,251,0.5); }
-        .category-badge { display: inline-block; padding: 0.25rem 0.75rem; background: #f3f4f6; color: #374151; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
-        .payment-method { display: flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.875rem; }
-        .payment-icon { font-size: 1rem; }
-        .amount { font-weight: 700; font-size: 1rem; }
-        .amount.positive { color: #16a34a; }
-        .amount.negative { color: #dc2626; }
-        .amount.switch { color: #2563eb; }
-        .amount.saving { color: #9333ea; }
-        .empty-state { text-align: center; padding: 5rem 1rem; color: #9ca3af; }
-        .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
-        
-        /* Pagination */
-        .pagination { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 1rem; 
-            padding: 1.5rem; 
-            width: 100%;
-            box-sizing: border-box;
-            margin-top: 1rem;
-        }
-        .pagination a { 
-            padding: 0.5rem 1rem; 
-            background: linear-gradient(to right, #2563eb, #9333ea); 
-            color: white; 
-            border-radius: 0.5rem; 
-            text-decoration: none; 
-            font-weight: 600; 
-            transition: all 0.3s; 
-            white-space: nowrap;
-        }
-        .pagination a:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .pagination span { 
-            color: #6b7280; 
-            font-weight: 600; 
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .edit-btn {
-            background: rgba(37, 99, 235, 0.1);
-            color: #2563eb;
-        }
-
-        .edit-btn:hover {
-            background: rgba(37, 99, 235, 0.2);
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
-        }
-
-        .delete-btn {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
-        }
-
-        .action-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Confirmation Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(229, 231, 235, 0.5);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        .modal-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 12px;
-        }
-
-        .modal-message {
-            color: #6b7280;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .modal-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            min-width: 100px;
-        }
-
-        .modal-btn-cancel {
-            background: rgba(107, 114, 128, 0.1);
-            color: #6b7280;
-            border: 1px solid rgba(107, 114, 128, 0.2);
-        }
-
-        .modal-btn-cancel:hover {
-            background: rgba(107, 114, 128, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .modal-btn-delete {
-            background: linear-gradient(to right, #ef4444, #dc2626);
-            color: white;
-        }
-
-        .modal-btn-delete:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-
-
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 80px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(to right, #2563eb, #9333ea);
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-            z-index: 40;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-        }
-
-        .fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
-        }
-
-        .fab:active {
-            transform: scale(0.95);
-        }
-
-        .fab svg {
-            width: 28px;
-            height: 28px;
-        }
-
-        /* Responsive */
-        @media (max-width: 378px) {
-            .date-filter-section { padding: 12px; }
-            .date-filter-form { gap: 8px; }
-            .date-inputs { gap: 4px; }
-            .date-input-group label { font-size: 0.75rem; }
-            .date-input { min-width: 100px; padding: 6px 8px; font-size: 0.8rem; }
-            .date-separator { margin: 0; }
-            .date-filter-actions { gap: 6px; }
-            .filter-btn { padding: 6px 10px; font-size: 0.75rem; gap: 4px; }
-            .quick-filter-btn { padding: 4px 8px; font-size: 0.7rem; }
-            .search-box { min-width: 100%; }
-            .search-box input { font-size: 0.875rem; padding: 0.5rem 0.5rem 0.5rem 2rem; }
-            .filter-group select { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
-            .filter-group { gap: 4px; }
-        }
-
-        @media (max-width: 768px) {
-            .container { padding: 1rem 0.5rem 100px; } /* Extra bottom padding for mobile nav */
-            .header-inner { padding: 0 0.5rem; }
-            .nav-links { display: none; }
-            .settings-dropdown { display: none; } /* Hide settings dropdown on mobile */
-            .whatif-toggle { margin: 0 0.25rem; } /* Reduce margin on mobile */
-            .btn-add { display: none; } /* Hide desktop add button on mobile */
-            .summary-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .stat-card { padding: 1rem; }
-            .stat-value { font-size: 1.5rem; }
-            .filters-wrapper { flex-direction: column; }
-            .search-box { width: 100%; }
-            .filter-group { width: 100%; }
-            .filter-group select { flex: 1; }
-            th, td { padding: 0.75rem 0.5rem; font-size: 0.875rem; } /* Increased from 0.75rem to 0.875rem */
-            .table-wrapper { overflow-x: scroll; }
-            table { min-width: 700px; }
-            
-            .quick-filters {
-                margin-left: 0;
-                justify-content: center;
-            }
-            
-            /* Show mobile navigation and FAB */
-            .mobile-nav { display: block; }
-            .fab { display: flex; }
-            
-            /* Mobile action buttons */
-            .action-buttons {
-                gap: 6px;
-            }
-            
-            .action-btn {
-                width: 28px;
-                height: 28px;
-            }
-            
-            .action-btn svg {
-                width: 14px;
-                height: 14px;
-            }
-            
-            /* Mobile modal */
-            .modal-content {
-                padding: 24px;
-                margin: 16px;
-            }
-            
-            .modal-icon {
-                width: 48px;
-                height: 48px;
-                margin-bottom: 16px;
-            }
-            
-            .modal-title {
-                font-size: 1.25rem;
-            }
-            
-            .modal-actions {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .modal-btn {
-                width: 100%;
-            }
-            
-            /* Mobile pagination */
-            .pagination {
-                padding: 1rem 0.5rem;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-            }
-            
-            .pagination a {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.875rem;
-            }
-            
-            .pagination span {
-                font-size: 0.875rem;
-                flex-basis: 100%;
-                order: -1;
-                margin-bottom: 0.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    {% include "includes/nav.html" with active_page="dashboard" action_url="add_transaction" action_text="Add Transaction" whatif_next="dashboard" %}
-
-    <div class="container">
-        <!-- What-If Mode Banner -->
-        {% if request.session.whatif_mode %}
-        <div class="whatif-banner" style="background: linear-gradient(to right, #f59e0b, #ea580c); border-radius: 1rem; padding: 1rem 1.5rem; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; box-shadow: 0 8px 16px rgba(245,158,11,0.2);">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div style="font-size: 1.5rem;">🧪</div>
-                <div>
-                    <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.25rem;">What-If Mode Active</h3>
-                    <p style="font-size: 0.875rem; opacity: 0.9;">All transactions are temporary and won't affect your real data</p>
-                </div>
+    <!-- What-If banner -->
+    {% if request.session.whatif_mode %}
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4">
+        <div class="flex items-center gap-3 text-warning">
+            {% include "components/icon.html" with name="sparkles" size=24 %}
+            <div>
+                <p class="font-semibold text-foreground">What-If Mode Active</p>
+                <p class="text-sm text-muted-foreground">All transactions are temporary and won't affect your real data.</p>
             </div>
-            <form method="post" action="{% url 'toggle_whatif' %}" style="display: inline;">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{% url 'dashboard' %}">
-                <button type="submit" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: none; border-radius: 0.75rem; color: white; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.3s;">
-                    Exit Mode
-                </button>
-            </form>
         </div>
-        {% endif %}
-        
-        <!-- Quick Insight Banner -->
-        {% if total_income > 0 %}
-        <div class="insight-banner" style="background: {% if is_healthy %}linear-gradient(to right, #10b981, #059669){% elif balance >= 0 %}linear-gradient(to right, #f59e0b, #ea580c){% else %}linear-gradient(to right, #ef4444, #dc2626){% endif %};">
-            <div class="insight-content">
-                <div class="insight-icon">
-                    {% if is_healthy %}✨{% elif balance >= 0 %}⚠️{% else %}🚨{% endif %}
-                </div>
-                <div class="insight-text">
-                    <h3>
-                        {% if is_healthy %}
-                            🎉 Great job! Your finances are healthy!
-                        {% elif balance >= 0 %}
-                            Watch your spending - savings rate is low
-                        {% else %}
-                            🚨 Alert: You're in the red!
-                        {% endif %}
-                    </h3>
-                    <p>
-                        {% if is_healthy %}
-                            Savings rate: {{ savings_rate|floatformat:1 }}% • Keep it up!
-                        {% elif balance >= 0 %}
-                            Savings rate: {{ savings_rate|floatformat:1 }}% • Try to save at least 20%
-                        {% else %}
-                            Current balance: ₹{{ balance|indian_currency }} • Take action now
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-            <a href="{% url 'survival' %}" class="insight-btn">View Survival Dashboard →</a>
-        </div>
-        {% endif %}
+        <form method="post" action="{% url 'toggle_whatif' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="btn-outline btn-sm">Exit Mode</button>
+        </form>
+    </div>
+    {% endif %}
 
-        <!-- Summary Cards -->
-        <div class="summary-grid">
-            <!-- Total Income -->
-            <div class="stat-card income">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="16" x2="12" y2="8"></line></svg>
-                    </div>
-                    <div class="stat-trend positive">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                    </div>
-                </div>
-                <h3 class="stat-label">Total Income</h3>
-                <p class="stat-value">₹{{ total_income|indian_currency }}</p>
-            </div>
-
-            <!-- Total Expense -->
-            <div class="stat-card expense">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg>
-                    </div>
-                    <div class="stat-trend negative">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(180deg);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                    </div>
-                </div>
-                <h3 class="stat-label">Total Expense</h3>
-                <p class="stat-value">₹{{ total_expense|indian_currency }}</p>
-            </div>
-
-            <!-- Net Balance -->
-            <div class="stat-card balance">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="background: linear-gradient(to bottom right, #2563eb, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                    </div>
-                    <div style="display:flex;align-items:center;">
-                        <span class="stat-trend {% if balance >= 0 %}positive{% else %}negative{% endif %}">
-                            {% if balance >= 0 %}+{% endif %}{% if total_income > 0 %}{% widthratio balance total_income 100 %}{% else %}0{% endif %}%
-                        </span>
-                        <button class="eye-toggle" onclick="toggleSensitive()" title="Toggle sensitive info">
-                            <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <h3 class="stat-label">Net Balance</h3>
-                <p class="stat-value">
-                    <span class="net-with-savings">₹{{ balance|indian_currency }}</span>
-                    <span class="net-without-savings">₹{{ balance_without_savings|indian_currency }}</span>
+    <!-- Insight banner -->
+    {% if total_income > 0 %}
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4
+        {% if is_healthy %}border-success/30 bg-success/10{% elif balance >= 0 %}border-warning/30 bg-warning/10{% else %}border-destructive/30 bg-destructive/10{% endif %}">
+        <div class="flex items-center gap-3">
+            <span class="{% if is_healthy %}text-success{% elif balance >= 0 %}text-warning{% else %}text-destructive{% endif %}">
+                {% if is_healthy %}{% include "components/icon.html" with name="sparkles" size=24 %}{% elif balance >= 0 %}{% include "components/icon.html" with name="triangle-alert" size=24 %}{% else %}{% include "components/icon.html" with name="triangle-alert" size=24 %}{% endif %}
+            </span>
+            <div>
+                <p class="font-semibold text-foreground">
+                    {% if is_healthy %}Great job! Your finances are healthy.{% elif balance >= 0 %}Watch your spending — savings rate is low.{% else %}Alert: you're in the red!{% endif %}
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    {% if is_healthy %}Savings rate: {{ savings_rate|floatformat:1 }}% • Keep it up!{% elif balance >= 0 %}Savings rate: {{ savings_rate|floatformat:1 }}% • Try to save at least 20%.{% else %}Current balance: ₹{{ balance|indian_currency }} • Take action now.{% endif %}
                 </p>
             </div>
+        </div>
+        <a href="{% url 'survival' %}" class="btn-outline btn-sm">View Survival{% include "components/icon.html" with name="chevron-right" size=16 %}</a>
+    </div>
+    {% endif %}
 
-            <!-- Payment Methods -->
-            <div class="stat-card methods">
-                <h3 class="stat-label" style="margin-bottom: 0.75rem;">Payment Methods</h3>
-                <div class="methods-breakdown">
-                    <div class="method-item">
-                        <div class="method-info">
-                            <div class="method-icon upi">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                            </div>
-                            <span class="method-label">UPI Cash</span>
-                        </div>
-                        <span class="method-value upi">₹{{ upi_balance|indian_currency }}</span>
-                    </div>
-                    <div class="method-divider"></div>
-                    <div class="method-item">
-                        <div class="method-info">
-                            <div class="method-icon cash">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                            </div>
-                            <span class="method-label">Hand Cash</span>
-                        </div>
-                        <span class="method-value cash">₹{{ hand_balance|indian_currency }}</span>
-                    </div>
-                    <div class="method-divider savings-line"></div>
-                    <div class="method-item savings-line">
-                        <div class="method-info">
-                            <div class="method-icon" style="background: #fef3c7; color: #d97706;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/></svg>
-                            </div>
-                            <span class="method-label">Savings Amount</span>
-                        </div>
-                        <span class="method-value" style="color: #d97706;">₹{{ total_saved|indian_currency }}</span>
+    <!-- KPI cards -->
+    <div id="summaryGrid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {% include "components/kpi_card.html" with label="Total Income" prefix="₹" value=total_income|indian_currency icon="circle-arrow-up" tone="success" %}
+        {% include "components/kpi_card.html" with label="Total Expense" prefix="₹" value=total_expense|indian_currency icon="circle-arrow-down" tone="destructive" %}
+
+        <!-- Net balance (with sensitive toggle) -->
+        <div class="card">
+            <div class="card-content pt-6">
+                <div class="flex items-start justify-between">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        {% include "components/icon.html" with name="wallet" size=22 %}
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-medium {% if balance >= 0 %}text-success{% else %}text-destructive{% endif %}">
+                            {% if balance >= 0 %}+{% endif %}{% if total_income > 0 %}{% widthratio balance total_income 100 %}{% else %}0{% endif %}%
+                        </span>
+                        <button type="button" id="eyeToggle" onclick="toggleSensitive()" title="Toggle sensitive info"
+                                class="btn-icon-sm text-muted-foreground hover:bg-accent hover:text-foreground">
+                            <span data-eye>{% include "components/icon.html" with name="eye" size=18 %}</span>
+                            <span data-eye-off class="hidden">{% include "components/icon.html" with name="eye-off" size=18 %}</span>
+                        </button>
                     </div>
                 </div>
+                <p class="mt-4 text-sm text-muted-foreground">Net Balance</p>
+                <p class="mt-1 text-2xl font-bold tracking-tight text-foreground">
+                    <span class="net-with-savings">₹{{ balance|indian_currency }}</span>
+                    <span class="net-without-savings hidden">₹{{ balance_without_savings|indian_currency }}</span>
+                </p>
             </div>
         </div>
 
-        <!-- Filters & Search -->
-        <div class="filters-section">
-            <form method="get" id="filterForm">
-                <div class="filters-wrapper">
-                    <div class="search-box">
-                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-                        <input type="text" name="search" placeholder="Search transactions..." value="{{ search }}" id="searchInput">
+        <!-- Payment methods -->
+        <div class="card">
+            <div class="card-content pt-6">
+                <p class="mb-3 text-sm text-muted-foreground">Payment Methods</p>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">{% include "components/icon.html" with name="credit-card" size=16 %}</span>
+                            <span class="text-sm text-muted-foreground">UPI Cash</span>
+                        </span>
+                        <span class="font-semibold text-foreground">₹{{ upi_balance|indian_currency }}</span>
                     </div>
-                    
-                    <div class="filter-group">
-                        <svg class="filter-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                        
-                        <select name="transaction_type" id="typeFilter">
-                            <option value="">All Types</option>
-                            <option value="INCOME" {% if transaction_type == 'INCOME' %}selected{% endif %}>Income</option>
-                            <option value="EXPENSE" {% if transaction_type == 'EXPENSE' %}selected{% endif %}>Expense</option>
-                            <option value="SWITCH" {% if transaction_type == 'SWITCH' %}selected{% endif %}>Switch</option>
-                            <option value="SAVING" {% if transaction_type == 'SAVING' %}selected{% endif %}>Saving</option>
-                        </select>
-                        
-                        <select name="money_type" id="methodFilter">
-                            <option value="">All Methods</option>
-                            <option value="UPI CASH" {% if money_type == 'UPI CASH' %}selected{% endif %}>UPI</option>
-                            <option value="HAND CASH" {% if money_type == 'HAND CASH' %}selected{% endif %}>Cash</option>
-                        </select>
-                        
-                        <select name="category" id="categoryFilter">
-                            <option value="">All Categories</option>
-                            {% for cat in categories %}
-                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="h-px bg-border"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-md bg-success/10 text-success">{% include "components/icon.html" with name="banknote" size=16 %}</span>
+                            <span class="text-sm text-muted-foreground">Hand Cash</span>
+                        </span>
+                        <span class="font-semibold text-foreground">₹{{ hand_balance|indian_currency }}</span>
+                    </div>
+                    <div class="h-px bg-border savings-line"></div>
+                    <div class="flex items-center justify-between savings-line">
+                        <span class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-md bg-warning/10 text-warning">{% include "components/icon.html" with name="piggy-bank" size=16 %}</span>
+                            <span class="text-sm text-muted-foreground">Savings Amount</span>
+                        </span>
+                        <span class="font-semibold text-warning">₹{{ total_saved|indian_currency }}</span>
                     </div>
                 </div>
-            </form>
-        </div>
-
-        <!-- Transactions Table -->
-        <div class="table-card">
-            <div class="table-header">
-                <h2>Recent Transactions</h2>
-                <p>Showing {{ transactions.object_list|length }} transaction{% if transactions.object_list|length != 1 %}s{% endif %}</p>
-            </div>
-
-            <!-- Date Filter Section -->
-            <div class="date-filter-section">
-                <div class="date-filter-header">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6366f1;">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <h3>Filter by Date Range</h3>
-                </div>
-                
-                <form method="GET" class="date-filter-form" id="dateFilterForm">
-                    <div class="date-inputs">
-                        <div class="date-input-group">
-                            <label for="start_date">Start Date</label>
-                            <input type="date" 
-                                   id="start_date" 
-                                   name="start_date" 
-                                   value="{{ start_date }}"
-                                   class="date-input">
-                        </div>
-                        
-                        <div class="date-separator">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </div>
-                        
-                        <div class="date-input-group">
-                            <label for="end_date">End Date</label>
-                            <input type="date" 
-                                   id="end_date" 
-                                   name="end_date" 
-                                   value="{{ end_date }}"
-                                   class="date-input">
-                        </div>
-                    </div>
-                    
-                    <div class="date-filter-actions">
-                        <button type="submit" class="filter-btn apply-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Apply Filter
-                        </button>
-                        
-                        <button type="button" class="filter-btn clear-btn" onclick="clearDateFilter()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                            Clear
-                        </button>
-                        
-                        <div class="quick-filters">
-                            <button type="button" class="quick-filter-btn" onclick="setQuickFilter('today')">Today</button>
-                            <button type="button" class="quick-filter-btn" onclick="setQuickFilter('yesterday')">Yesterday</button>
-                            <button type="button" class="quick-filter-btn" onclick="setQuickFilter('week')">This Week</button>
-                            <button type="button" class="quick-filter-btn" onclick="setQuickFilter('month')">This Month</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Preserve other filters -->
-                    {% if category %}
-                        <input type="hidden" name="category" value="{{ category }}">
-                    {% endif %}
-                    {% if transaction_type %}
-                        <input type="hidden" name="transaction_type" value="{{ transaction_type }}">
-                    {% endif %}
-                    {% if money_type %}
-                        <input type="hidden" name="money_type" value="{{ money_type }}">
-                    {% endif %}
-                </form>
-            </div>
-            
-            <div id="transactionsContainer">
-                {% include 'dashboard/_transactions_table.html' %}
             </div>
         </div>
     </div>
 
-    <script>
-        const filterForm = document.getElementById('filterForm');
-        const searchInput = document.getElementById('searchInput');
-        const typeFilter = document.getElementById('typeFilter');
-        const methodFilter = document.getElementById('methodFilter');
-        const categoryFilter = document.getElementById('categoryFilter');
+    <!-- Filters -->
+    <form method="get" id="filterForm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div class="relative flex-1">
+                <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{% include "components/icon.html" with name="search" size=18 %}</span>
+                <input type="text" name="search" id="searchInput" value="{{ search }}" placeholder="Search transactions..." class="input pl-10">
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <select name="transaction_type" id="typeFilter" class="select">
+                    <option value="">All Types</option>
+                    <option value="INCOME" {% if transaction_type == 'INCOME' %}selected{% endif %}>Income</option>
+                    <option value="EXPENSE" {% if transaction_type == 'EXPENSE' %}selected{% endif %}>Expense</option>
+                    <option value="SWITCH" {% if transaction_type == 'SWITCH' %}selected{% endif %}>Switch</option>
+                    <option value="SAVING" {% if transaction_type == 'SAVING' %}selected{% endif %}>Saving</option>
+                </select>
+                <select name="money_type" id="methodFilter" class="select">
+                    <option value="">All Methods</option>
+                    <option value="UPI CASH" {% if money_type == 'UPI CASH' %}selected{% endif %}>UPI</option>
+                    <option value="HAND CASH" {% if money_type == 'HAND CASH' %}selected{% endif %}>Cash</option>
+                </select>
+                <select name="category" id="categoryFilter" class="select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
 
-        let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => filterForm.submit(), 500);
-        });
+    <!-- Transactions card -->
+    <div class="card overflow-hidden">
+        <div class="card-header flex-row items-center justify-between space-y-0">
+            <div>
+                <h2 class="card-title">Recent Transactions</h2>
+                <p class="card-description">Showing {{ transactions.object_list|length }} transaction{{ transactions.object_list|length|pluralize }}</p>
+            </div>
+        </div>
 
-        typeFilter.addEventListener('change', () => filterForm.submit());
-        methodFilter.addEventListener('change', () => filterForm.submit());
-        categoryFilter.addEventListener('change', () => filterForm.submit());
+        <!-- Date filter -->
+        <div class="border-y border-border bg-muted/40 p-4 sm:px-6">
+            <div class="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+                {% include "components/icon.html" with name="calendar" size=18 class="text-primary" %}
+                <span>Filter by Date Range</span>
+            </div>
+            <form method="GET" id="dateFilterForm" class="flex flex-wrap items-end gap-3">
+                <div class="field">
+                    <label class="label" for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date }}" class="input w-auto">
+                </div>
+                <div class="field">
+                    <label class="label" for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date }}" class="input w-auto">
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="submit" class="btn-primary btn-sm">{% include "components/icon.html" with name="check" size=16 %}<span>Apply</span></button>
+                    <button type="button" onclick="clearDateFilter()" class="btn-outline btn-sm">{% include "components/icon.html" with name="x" size=16 %}<span>Clear</span></button>
+                </div>
+                <div class="ml-auto flex flex-wrap gap-1.5">
+                    <button type="button" class="quick-filter-btn badge-outline cursor-pointer hover:bg-accent" onclick="setQuickFilter('today', this)">Today</button>
+                    <button type="button" class="quick-filter-btn badge-outline cursor-pointer hover:bg-accent" onclick="setQuickFilter('yesterday', this)">Yesterday</button>
+                    <button type="button" class="quick-filter-btn badge-outline cursor-pointer hover:bg-accent" onclick="setQuickFilter('week', this)">This Week</button>
+                    <button type="button" class="quick-filter-btn badge-outline cursor-pointer hover:bg-accent" onclick="setQuickFilter('month', this)">This Month</button>
+                </div>
+                {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+                {% if transaction_type %}<input type="hidden" name="transaction_type" value="{{ transaction_type }}">{% endif %}
+                {% if money_type %}<input type="hidden" name="money_type" value="{{ money_type }}">{% endif %}
+            </form>
+        </div>
 
-        // AJAX Pagination
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.pagination-link')) {
-                e.preventDefault();
-                const link = e.target.closest('.pagination-link');
-                const page = link.getAttribute('data-page');
-                loadPage(page);
-            }
-        });
+        <div id="transactionsContainer">
+            {% include 'dashboard/_transactions_table.html' %}
+        </div>
+    </div>
+</div>
 
-        function loadPage(page) {
-            const formData = new FormData(filterForm);
-            const params = new URLSearchParams(formData);
-            params.set('page', page);
+<!-- Mobile FAB (add transaction) -->
+<a href="{% url 'add_transaction' %}" aria-label="Add transaction"
+   class="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 md:hidden">
+    {% include "components/icon.html" with name="plus" size=26 %}
+</a>
 
-            // Show loading state
-            const container = document.getElementById('transactionsContainer');
-            container.style.opacity = '0.5';
-            container.style.pointerEvents = 'none';
+<!-- Delete confirmation dialog -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md animate-scale-in rounded-xl border border-border bg-card p-6 text-center text-card-foreground shadow-xl">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            {% include "components/icon.html" with name="trash-2" size=28 %}
+        </div>
+        <h3 class="text-lg font-semibold text-foreground">Delete Transaction</h3>
+        <p class="mt-2 text-sm text-muted-foreground">Are you sure you want to delete "<span id="transactionName" class="font-medium text-foreground"></span>"? This action cannot be undone.</p>
+        <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <button onclick="closeDeleteModal()" class="btn-outline">Cancel</button>
+            <button onclick="confirmDelete()" class="btn-destructive">Delete</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-            fetch('{% url "dashboard" %}?' + params.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
+{% block scripts %}
+<script>
+    // ---- Filters: auto-submit ----
+    const filterForm = document.getElementById('filterForm');
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const methodFilter = document.getElementById('methodFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    let searchTimeout;
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => filterForm.submit(), 500);
+    });
+    typeFilter.addEventListener('change', () => filterForm.submit());
+    methodFilter.addEventListener('change', () => filterForm.submit());
+    categoryFilter.addEventListener('change', () => filterForm.submit());
+
+    // ---- AJAX pagination ----
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('.pagination-link');
+        if (link) { e.preventDefault(); loadPage(link.getAttribute('data-page')); }
+    });
+
+    function loadPage(page) {
+        const params = new URLSearchParams(new FormData(filterForm));
+        params.set('page', page);
+        const container = document.getElementById('transactionsContainer');
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+        fetch('{% url "dashboard" %}?' + params.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
             .then(data => {
                 container.innerHTML = data.html;
                 container.style.opacity = '1';
                 container.style.pointerEvents = 'auto';
-                
-                // Scroll to transactions table smoothly
                 container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             })
-            .catch(error => {
-                console.error('Error loading page:', error);
+            .catch(err => {
+                console.error('Error loading page:', err);
                 container.style.opacity = '1';
                 container.style.pointerEvents = 'auto';
             });
+    }
+
+    // ---- Edit / delete ----
+    function editTransaction(id, type) {
+        window.location.href = type === 'SAVING' ? `/ledger/${id}/edit-saving/` : `/ledger/${id}/edit/`;
+    }
+
+    let deleteTransactionId = null;
+    function deleteTransaction(id, name) {
+        deleteTransactionId = id;
+        document.getElementById('transactionName').textContent = name;
+        const m = document.getElementById('deleteModal');
+        m.classList.remove('hidden'); m.classList.add('flex');
+    }
+    function closeDeleteModal() {
+        const m = document.getElementById('deleteModal');
+        m.classList.add('hidden'); m.classList.remove('flex');
+        deleteTransactionId = null;
+    }
+    function confirmDelete() {
+        if (!deleteTransactionId) return;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/ledger/${deleteTransactionId}/delete/`;
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (token) {
+            const input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'csrfmiddlewaretoken'; input.value = token.value;
+            form.appendChild(input);
         }
-    </script>
+        document.body.appendChild(form);
+        form.submit();
+    }
+    document.getElementById('deleteModal').addEventListener('click', function (e) {
+        if (e.target === this) closeDeleteModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDeleteModal(); });
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3,6 5,6 21,6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-            </div>
-            <h3 class="modal-title">Delete Transaction</h3>
-            <p class="modal-message">Are you sure you want to delete "<span id="transactionName"></span>"? This action cannot be undone.</p>
-            <div class="modal-actions">
-                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
-                <button class="modal-btn modal-btn-delete" onclick="confirmDelete()">Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let deleteTransactionId = null;
-
-        function editTransaction(transactionId, transactionType) {
-            if (transactionType === 'SAVING') {
-                window.location.href = `/ledger/${transactionId}/edit-saving/`;
-            } else {
-                window.location.href = `/ledger/${transactionId}/edit/`;
+    // ---- Date filter ----
+    function clearDateFilter() {
+        document.getElementById('start_date').value = '';
+        document.getElementById('end_date').value = '';
+        document.getElementById('dateFilterForm').submit();
+    }
+    function setQuickFilter(period, btn) {
+        const today = new Date();
+        let startDate, endDate;
+        document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('badge-default', 'active'));
+        if (btn) btn.classList.add('badge-default', 'active');
+        switch (period) {
+            case 'today': startDate = endDate = today.toISOString().split('T')[0]; break;
+            case 'yesterday': {
+                const y = new Date(today); y.setDate(today.getDate() - 1);
+                startDate = endDate = y.toISOString().split('T')[0]; break;
+            }
+            case 'week': {
+                const w = new Date(today); w.setDate(today.getDate() - today.getDay());
+                startDate = w.toISOString().split('T')[0]; endDate = today.toISOString().split('T')[0]; break;
+            }
+            case 'month': {
+                const m = new Date(today.getFullYear(), today.getMonth(), 1);
+                startDate = m.toISOString().split('T')[0]; endDate = today.toISOString().split('T')[0]; break;
             }
         }
-
-        function deleteTransaction(transactionId, transactionName) {
-            deleteTransactionId = transactionId;
-            document.getElementById('transactionName').textContent = transactionName;
-            document.getElementById('deleteModal').classList.add('show');
+        document.getElementById('start_date').value = startDate;
+        document.getElementById('end_date').value = endDate;
+        document.getElementById('dateFilterForm').submit();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const s = document.getElementById('start_date');
+        const e = document.getElementById('end_date');
+        let t;
+        function onChange() {
+            clearTimeout(t);
+            t = setTimeout(() => { if (s.value && e.value) document.getElementById('dateFilterForm').submit(); }, 500);
         }
+        if (s && e) { s.addEventListener('change', onChange); e.addEventListener('change', onChange); }
 
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('show');
-            deleteTransactionId = null;
+        // Restore sensitive state
+        if (localStorage.getItem('sensitiveHidden') === 'true') applySensitive(true);
+    });
+
+    // ---- Sensitive info toggle ----
+    function applySensitive(hidden) {
+        document.querySelectorAll('.savings-line').forEach(el => el.classList.toggle('hidden', hidden));
+        document.querySelectorAll('.net-with-savings').forEach(el => el.classList.toggle('hidden', hidden));
+        document.querySelectorAll('.net-without-savings').forEach(el => el.classList.toggle('hidden', !hidden));
+        const btn = document.getElementById('eyeToggle');
+        if (btn) {
+            btn.querySelector('[data-eye]').classList.toggle('hidden', hidden);
+            btn.querySelector('[data-eye-off]').classList.toggle('hidden', !hidden);
         }
+    }
+    function toggleSensitive() {
+        const hidden = localStorage.getItem('sensitiveHidden') !== 'true';
+        localStorage.setItem('sensitiveHidden', hidden);
+        applySensitive(hidden);
+    }
 
-        function confirmDelete() {
-            if (deleteTransactionId) {
-                // Create a form and submit it
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/ledger/${deleteTransactionId}/delete/`;
-                
-                // Add CSRF token
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-                if (csrfToken) {
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = 'csrfmiddlewaretoken';
-                    csrfInput.value = csrfToken.value;
-                    form.appendChild(csrfInput);
-                }
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('deleteModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDeleteModal();
-            }
+    // ---- CSV export ----
+    function exportTransactions() {
+        const rows = [['Date', 'Type', 'Category', 'Amount', 'Money Type', 'Description']];
+        document.querySelectorAll('.transaction-row').forEach(row => {
+            const get = sel => (row.querySelector(sel)?.textContent || '').trim();
+            rows.push([
+                get('.transaction-date'), get('.transaction-type'), get('.transaction-category'),
+                get('.transaction-amount'), get('.transaction-money-type'), get('.transaction-description'),
+            ]);
         });
-
-        // Date filter functions
-        function clearDateFilter() {
-            document.getElementById('start_date').value = '';
-            document.getElementById('end_date').value = '';
-            document.getElementById('dateFilterForm').submit();
-        }
-
-        function setQuickFilter(period) {
-            const today = new Date();
-            let startDate, endDate;
-
-            // Remove active class from all quick filter buttons
-            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Add active class to clicked button
-            event.target.classList.add('active');
-
-            switch(period) {
-                case 'today':
-                    startDate = endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'yesterday':
-                    const yesterday = new Date(today);
-                    yesterday.setDate(today.getDate() - 1);
-                    startDate = endDate = yesterday.toISOString().split('T')[0];
-                    break;
-                case 'week':
-                    const weekStart = new Date(today);
-                    weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
-                    startDate = weekStart.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'month':
-                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-                    startDate = monthStart.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-            }
-
-            document.getElementById('start_date').value = startDate;
-            document.getElementById('end_date').value = endDate;
-            document.getElementById('dateFilterForm').submit();
-        }
-
-        // Auto-submit form when date inputs change
-        document.addEventListener('DOMContentLoaded', function() {
-            const startDateInput = document.getElementById('start_date');
-            const endDateInput = document.getElementById('end_date');
-            
-            let debounceTimer;
-            
-            function handleDateChange() {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    if (startDateInput.value && endDateInput.value) {
-                        document.getElementById('dateFilterForm').submit();
-                    }
-                }, 500); // Wait 500ms after user stops typing
-            }
-            
-            if (startDateInput && endDateInput) {
-                startDateInput.addEventListener('change', handleDateChange);
-                endDateInput.addEventListener('change', handleDateChange);
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeDeleteModal();
-            }
-        });
-    </script>
-
-    <!-- Floating Action Button (Mobile) -->
-    <a href="{% url 'add_transaction' %}" class="fab">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-    </a>
-
-    {% include "includes/mobile_nav.html" with active_page="dashboard" export_csv_function=True %}
-
-    <script>
-        // Export transactions to CSV
-        function exportTransactions() {
-            const transactions = [
-                ['Date', 'Type', 'Category', 'Amount', 'Money Type', 'Description']
-            ];
-            
-            // Get transaction data from the table
-            const rows = document.querySelectorAll('.transaction-row');
-            rows.forEach(row => {
-                const date = row.querySelector('.transaction-date')?.textContent?.trim() || '';
-                const type = row.querySelector('.transaction-type')?.textContent?.trim() || '';
-                const category = row.querySelector('.transaction-category')?.textContent?.trim() || '';
-                const amount = row.querySelector('.transaction-amount')?.textContent?.trim() || '';
-                const moneyType = row.querySelector('.transaction-money-type')?.textContent?.trim() || '';
-                const description = row.querySelector('.transaction-description')?.textContent?.trim() || '';
-                
-                transactions.push([date, type, category, amount, moneyType, description]);
-            });
-            
-            // Create CSV content
-            const csvContent = transactions.map(row => 
-                row.map(field => `"${field}"`).join(',')
-            ).join('\n');
-            
-            // Download CSV
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Add hover effects to quick action cards
-        document.addEventListener('DOMContentLoaded', function() {
-            const quickActionCards = document.querySelectorAll('.quick-action-card');
-            quickActionCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                    this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-                });
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                });
-            });
-
-            // Restore sensitive toggle state
-            const sensitiveHidden = localStorage.getItem('sensitiveHidden') === 'true';
-            const summaryGrid = document.querySelector('.summary-grid');
-            if (sensitiveHidden && summaryGrid) {
-                summaryGrid.classList.add('sensitive-hidden');
-            }
-        });
-
-        function toggleSensitive() {
-            const summaryGrid = document.querySelector('.summary-grid');
-            if (!summaryGrid) return;
-            summaryGrid.classList.toggle('sensitive-hidden');
-            localStorage.setItem('sensitiveHidden', summaryGrid.classList.contains('sensitive-hidden'));
-        }
-    </script>
-</body>
-</html>
+        const csv = rows.map(r => r.map(f => `"${f.replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% endblock %}
